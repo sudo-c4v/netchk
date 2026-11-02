@@ -11,20 +11,48 @@ netchk $VERSION
 Usage: netchk.sh <command>
 
 Commands:
-  ifaces    List network interfaces and their addresses
+  if    List network interfaces and their addresses
+  ping HOST Check whether a host is reachable
   help      Show this message
 EOF
 }
 
-cmd_ifaces() {
-    ip -brief address
+cmd_if() {
+    ip -brief address | awk '
+        BEGIN {
+            printf "%-16s %-8s %s\n", "INTERFACE", "STATUS", "ADDRESS"
+            printf "%-16s %-8s %s\n", "---------", "------", "-------"
+        }
+        {
+            addrs = ""
+            for (i = 3; i <= NF; i++)
+                addrs = addrs (i > 3 ? ", " : "") $i
+            printf "%-16s %-8s %s\n", $1, $2, addrs
+        }'
+}
+
+cmd_ping() {
+    local host="${1:-}"
+
+    if [[ -z "$host" ]]; then
+        echo "netchk: ping needs a host, e.g. netchk.sh ping 1.1.1.1" >&2
+        return 1
+    fi
+
+    if ping -c 3 -W 2 "$host" > /dev/null 2>&1; then
+        echo "OK: $host is reachable"
+    else
+        echo "FAIL: $host is not reachable" >&2
+        return 1
+    fi
 }
 
 main() {
     local cmd="${1:-help}"
 
     case "$cmd" in
-        ifaces)       cmd_ifaces ;;
+        if)       cmd_if ;;
+        ping)     cmd_ping "${2:-}" ;;
         help|-h|--help) usage ;;
         *)
             echo "netchk: unknown command '$cmd'" >&2
