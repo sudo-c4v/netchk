@@ -13,6 +13,7 @@ Usage: netchk.sh <command>
 Commands:
   if    List network interfaces and their addresses
   ping HOST Check whether a host is reachable
+  dns HOST  Look up the addresses for a hostname
   help      Show this message
 EOF
 }
@@ -47,12 +48,33 @@ cmd_ping() {
     fi
 }
 
+cmd_dns() {
+    local host="${1:-}"
+
+    if [[ -z "$host" ]]; then
+        echo "netchk: dns needs a hostname, e.g. netchk.sh dns example.com" >&2
+        return 1
+    fi
+
+    local result
+    result=$(dig +short +time=2 +tries=1 "$host" 2>/dev/null) || result=""
+
+    if [[ -z "$result" ]]; then
+        echo "FAIL: $host did not resolve" >&2
+        return 1
+    fi
+
+    echo "OK: $host resolves to:"
+    echo "$result"
+}
+
 main() {
     local cmd="${1:-help}"
 
     case "$cmd" in
         if)       cmd_if ;;
         ping)     cmd_ping "${2:-}" ;;
+        dns)      cmd_dns "${2:-}" ;;
         help|-h|--help) usage ;;
         *)
             echo "netchk: unknown command '$cmd'" >&2
