@@ -17,7 +17,6 @@ A small bash wrapper around common Linux networking commands.
 - List network interfaces and addresses
 - Ping a host
 - Resolve DNS records
-- Show listening sockets
 
 ## Requirements
 - Linux with `iproute2` (`ip`, `ss`)
@@ -34,10 +33,9 @@ chmod +x netchk.sh
 
 ## Usage
 ```bash
-./netchk.sh -i              # list interfaces
-./netchk.sh -p 1.1.1.1      # ping
-./netchk.sh -d example.com  # resolve DNS
-./netchk.sh -l              # listening sockets
+./netchk.sh if                # list interfaces
+./netchk.sh ping 1.1.1.1      # ping
+./netchk.sh dns example.com   # resolve DNS
 ```
 
 ## Why I built it
